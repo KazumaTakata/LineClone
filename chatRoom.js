@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Triangle from 'react-native-triangle';
+import { connect } from "react-redux";
 import {
   Platform,
   StyleSheet,
@@ -21,40 +22,50 @@ import { StackNavigator } from 'react-navigation';
 
 
 type Props = {};
-class ChatRoom extends Component<Props> {
+class ChatRoomComp extends Component<Props> {
 
   constructor(props){
     super(props);
     const { params } = this.props.navigation.state;
-    console.log(params)
+
 
     this.state = { text: "", chatData: [
-      {which: 1, content: "Hellooofeefewfewafwfewfwefewfewfwfwefwfwefeweafwefeweeeeeo"},
-      {which: 0, content: "Hello bro"},
-      {which: 0, content: "What's happen"},
-      {which: 1, content: "What's happen"}
+      // {which: 1, content: "Hellooofeefewfewafwfewfwefewfewfwfwefwfwefeweafwefeweeeeeo"},
+      // {which: 0, content: "Hello bro"},
+      // {which: 0, content: "What's happen"},
+      // {which: 1, content: "What's happen"}
     ]};
-    console.log(`user/talks/name/${params.name}`)
+
+    this.MeToYou = `user/${this.props.reduxState.dataReducer.id}/talks/${params.id}`
+    this.YouToMe = `user/${params.id}/talks/${this.props.reduxState.dataReducer.id}`
+
     firebase.database()
-        .ref(`user/talks/name/${params.name}`)
+        .ref(this.MeToYou)
         .on('value', (snapshot) => {
           const value = snapshot.val();
-          console.log(value)
 
         })
-    this.setState((prevState) => {
 
-    })
-
-
+    this.buttonPressed = this.buttonPressed.bind(this)
   }
-  textInputChange(){
-    console.log("text input is changed");
 
-  }
+
   buttonPressed(){
     console.log("button pressed")
-  }
+
+    firebase.database()
+      .ref(this.MeToYou).push()
+      .set({
+        talk: this.state.text,
+        which: 0
+      });
+    firebase.database()
+      .ref(this.YouToMe).push()
+      .set({
+        talk: this.state.text,
+        which: 1
+      });
+    }
 
   chatboxRender(data){
     let style = null
@@ -67,8 +78,29 @@ class ChatRoom extends Component<Props> {
       viewStyle = "flex-end"
     }
 
-    return <View style={{padding: 10, alignItems: viewStyle}}><Text style={style}>{data.content}</Text></View>
+    return <View style={{padding: 10, alignItems: viewStyle}}><Text style={style}>{data.talk}</Text></View>
+  }
 
+  componentWillMount() {
+    this.props.navigation.addListener('willFocus', (playload)=>{
+
+      firebase.database()
+          .ref(this.MeToYou)
+          .on('value', (snapshot) => {
+            let talkList = []
+
+            snapshot.forEach(function(childSnapshot) {
+              console.log(childSnapshot)
+              let childKey = childSnapshot.key;
+              let childData = childSnapshot.val();
+              talkList.push(childData)
+            })
+          this.setState((prevState) => {
+            return { chatData: talkList }
+          } )
+
+    });
+    })
   }
 
   render() {
@@ -83,7 +115,7 @@ class ChatRoom extends Component<Props> {
         </ScrollView>
 
     <View style={{flexDirection: "row" ,position: "absolute", bottom: 2}}>
-      <TextInput onChangeText = {this.textInputChange} style={styles.TextBoxStyle} value={this.state.text}></TextInput>
+      <TextInput onChangeText={(text) => this.setState({text})} style={styles.TextBoxStyle} value={this.state.text}></TextInput>
       <TouchableOpacity style={styles.buttonStyle} onPress={this.buttonPressed}>
           <Text style={{textAlign: "center", color: "white"}}>Send</Text>
       </TouchableOpacity>
@@ -142,6 +174,11 @@ const styles = StyleSheet.create({
 });
 
 
+const mapStateToProps = state => {
+  return { reduxState : state };
+};
+
+const ChatRoom = connect(mapStateToProps, null)(ChatRoomComp);
 
 
 export default ChatRoom;

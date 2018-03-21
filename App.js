@@ -31,7 +31,7 @@ RootStack = StackNavigator({
       screen: ChatRoom,
     },
   AddFriend: {
-    screen : addFriend
+      screen : addFriend
   }
   },
   {

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connect } from "react-redux";
 import Triangle from 'react-native-triangle';
 import {
   Platform,
@@ -25,7 +26,7 @@ const { fromJS } = require('immutable')
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 type Props = {};
-class FriendsList extends Component<Props> {
+class FriendsListComp extends Component<Props> {
 
   static navigationOptions = ({ navigation }) => { {
 
@@ -43,8 +44,57 @@ class FriendsList extends Component<Props> {
     }
     }
   }
+
   componentWillMount() {
+    console.log("focus")
     this.props.navigation.setParams({ navigationToAddFriend: this._navigationToAddFriend });
+
+
+    this.props.navigation.addListener('willFocus', (playload)=>{
+      console.log(playload);
+
+      firebase.database()
+          .ref(`user/${this.props.reduxState.dataReducer.id}/friends`)
+          .on('value', (snapshot) => {
+            let friendIds = []
+            snapshot.forEach(function(childSnapshot) {
+            let childKey = childSnapshot.key;
+            let childData = childSnapshot.val();
+            friendIds.push(childData.id)
+            })
+
+            console.log(friendIds)
+
+            this.setState((prevState) => {
+              let Mstate = fromJS(prevState)
+              let Mstate1 = Mstate.setIn(["friends"], [])
+              return Mstate1.toJSON()
+            })
+
+            friendIds.forEach((id) => {
+            firebase.database()
+                  .ref(`user/${id}`)
+                  .on('value', (snapshot) => {
+                    let userVal = snapshot.val()
+                    userVal["id"] = id
+                    this.setState((prevState) => {
+                      let Mstate = fromJS(prevState)
+                      let Mstate1 = Mstate.updateIn(["friends"], list => list.push(userVal))
+                      return Mstate1.toJSON()
+                    })
+                    console.log(this.state)
+                  }
+            )
+
+          })
+    });
+    })
+  }
+
+
+  componentDidFocus(){
+    console.log("focus")
+
   }
 
   _navigationToAddFriend =() => {
@@ -60,30 +110,51 @@ class FriendsList extends Component<Props> {
     super(props);
     console.log("constructor")
 
-    firebase.database()
-        .ref('user/friends')
-        .on('value', (snapshot) => {
-          const value = snapshot.val();
-          this.setState(prevState => {
-            return {friends: value}
-          })
-          this.state.friends.map( (friend, index) =>{
-            firebase.storage().ref(friend.photo).getDownloadURL().then((url) => {
-              this.setState((prevState) => {
-                  let map1 = fromJS(prevState)
-                  let map2 = map1.setIn(["friends", index, "photo"], url)
-
-                  return map2.toJSON()
-               } )
-               console.log(this.state)
-             })
-          } )
-        });
-
-    this.state = { text: "Useless Placeholder",
-                  friends: null,
+    this.state = {
+                  friends: [],
                   imageUrl: {}
     };
+
+    // firebase.database()
+    //     .ref(`user/${this.props.reduxState.dataReducer.id}/friends`)
+    //     .on('value', (snapshot) => {
+    //       // snapshot.forEach(function(childSnapshot){
+    //       //   const value = childSnapshot.val();
+    //       //   console.log(`user/${this.props.reduxState.dataReducer.id}/friends`)
+    //       //   console.log(this.state)
+    //       //   this.setState((prevState) => {
+    //       //     console.log(prevState)
+    //       //     let Pstate = fromJS(prevState)
+    //       //     let Pstate1 = Pstate.updateIn(["friends"], list => list.push(value))
+    //       //     return Pstate1.toJSON()
+    //       //   })
+    //       //
+    //       // })
+    //       const value = snapshot.val();
+    //       console.log(value)
+    //       this.setState((prevState) => {
+    //        return {friends: value}
+    //      })
+    //      console.log(this.state)
+    //
+    //       // this.setState(prevState => {
+    //       //   return {friends: value}
+    //       // })
+    //       // if (typeof this.state.friends == "undefined"){
+    //       //     this.state.friends.map( (friend, index) =>{
+    //       //       firebase.storage().ref(friend.photo).getDownloadURL().then((url) => {
+    //       //         this.setState((prevState) => {
+    //       //             let map1 = fromJS(prevState)
+    //       //             let map2 = map1.setIn(["friends", index, "photo"], url)
+    //       //
+    //       //             return map2.toJSON()
+    //       //          } )
+    //       //          console.log(this.state)
+    //       //        })
+    //       //      } )
+    //       // }
+    //     });
+
 
     swipeoutBtns = [
       {
@@ -119,11 +190,10 @@ class FriendsList extends Component<Props> {
   render() {
     return (
       <View style={{flex: 1, alignItems: "center"}}>
-      {/* <Header headerTitle="FrindsList"></Header> */}
         <ScrollView>
             <FlatList
                 data={this.state.friends}
-                renderItem={({item}) => <Swipeout right={swipeoutBtns}><View style={styles.viewContainer}><Image  style={styles.image} source={{uri: item.photo}}/><Text id={item.frindId} onPress={ () => this.FriendItemTouch(item.name, item.friendId)} style={styles.chatBoxStyle}>{item.name}</Text>
+                renderItem={({item}) => <Swipeout right={swipeoutBtns}><View style={styles.viewContainer}><Image  style={styles.image} source={{uri: item.profilePhoto}}/><Text id={item.id} onPress={ () => this.FriendItemTouch(item.userName, item.id)} style={styles.chatBoxStyle}>{item.userName}</Text>
               </View>
             </Swipeout>
             }/>
@@ -132,6 +202,13 @@ class FriendsList extends Component<Props> {
   );
   }
 }
+
+const mapStateToProps = state => {
+  return { reduxState : state };
+};
+
+const FriendsList = connect(mapStateToProps, null)(FriendsListComp);
+
 
 const styles = StyleSheet.create({
   image: {

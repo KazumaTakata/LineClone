@@ -16,15 +16,37 @@ import {
 import Header from "./Header";
 import firebase from 'react-native-firebase';
 import t from 'tcomb-form-native';
+import { connect } from 'react-redux';
+import { setUserId } from "./redux/action"
+import TextField from "./TextField"
 
+const Form = t.form.Form;
 
+const User = t.struct({
+  email: t.String,
+  username: t.maybe(t.String),
+  password: t.String
+});
 
-class LogInScreen extends React.Component {
+const options = {
+  fields:{
+    email:{
+    autoCapitalize: 'none'
+  },
+    username:{
+    autoCapitalize: 'none'
+  },
+    password:{
+    autoCapitalize: 'none'
+    }
+  }
+}
+
+class LogInScreenComp extends React.Component {
 
   constructor(props){
     super(props);
-    this.state = { email: "", password: "" };
-
+    this.state = { email: "", password: "", username: "" };
     this.sendAuthenticationData = this.sendAuthenticationData.bind(this)
   }
   handleEmailInput(email){
@@ -37,17 +59,26 @@ class LogInScreen extends React.Component {
     console.log(this.state.password)
   }
 
-  onRegister = () => {
-  const { email, password } = this.state;
-  firebase.auth().createUserAndRetrieveDataWithEmailAndPassword(email, password)
-    .then((user) => {
-    })
-    .catch((error) => {
-      const { code, message } = error;
-      console.log(message)
-
-    });
-}
+  onRegister = (email, password, username) => {
+    firebase.auth().createUserAndRetrieveDataWithEmailAndPassword(email, password)
+      .then((user) => {
+        let userId = user.user._user.uid
+        this.props.setUserId(userId)
+        console.log(`user/${userId}/`)
+        firebase.database()
+          .ref(`user/${userId}`)
+          .set({
+            friendsNum: 0,
+            profilePhoto: "none",
+            friends: "none",
+            userName: username
+          });
+      })
+      .catch((error) => {
+        const { code, message } = error;
+        console.log(message)
+      });
+    }
 
   onLogin = () => {
   const { email, password } = this.state;
@@ -62,26 +93,27 @@ class LogInScreen extends React.Component {
 
   sendAuthenticationData(){
     console.log("button click")
-    this.onRegister()
+    const value = this._form.getValue();
+    this.onRegister(value.email, value.password, value.username)
     // this.props.navigation.navigate('Home')
-
-
   }
 
 
   render() {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text>Email</Text>
-      <TextInput style={{height: 40, borderColor: "gray", borderWidth: 1, width: 200, margin: 30}} autoCapitalize = 'none' onChangeText={ (input) => this.handleEmailInput(input)}/>
-        <Text>Password</Text>
-      <TextInput style={{height: 40, borderColor: "gray", borderWidth: 1, width: 200, margin: 30}} autoCapitalize = 'none' onChangeText={(password) => this.handlePasswordInput(password) }/>
-
-    <Button title="Go to Details" onPress={this.sendAuthenticationData}/>
+      <View style={{ flex: 1, padding: 20, justifyContent: 'center' }}>
+        {/* <TextField error={"ii"} label={"name"} /> */}
+        <Form options={options}  type={User} ref={c => this._form = c} />
+        <Button title="Sign Up" onPress={this.sendAuthenticationData}/>
       </View>
     );
   }
 }
 
+function mapDispatchToProps(dispatch) {
+    return { setUserId: id => dispatch(setUserId(id))};
+}
+
+const LogInScreen = connect(null, mapDispatchToProps)(LogInScreenComp)
 
 export default LogInScreen;
