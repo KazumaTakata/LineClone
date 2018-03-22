@@ -29,12 +29,7 @@ class ChatRoomComp extends Component<Props> {
     const { params } = this.props.navigation.state;
 
 
-    this.state = { text: "", chatData: [
-      // {which: 1, content: "Hellooofeefewfewafwfewfwefewfewfwfwefwfwefeweafwefeweeeeeo"},
-      // {which: 0, content: "Hello bro"},
-      // {which: 0, content: "What's happen"},
-      // {which: 1, content: "What's happen"}
-    ]};
+    this.state = { text: "", chatData: []};
 
     this.MeToYou = `user/${this.props.reduxState.dataReducer.id}/talks/${params.id}`
     this.YouToMe = `user/${params.id}/talks/${this.props.reduxState.dataReducer.id}`

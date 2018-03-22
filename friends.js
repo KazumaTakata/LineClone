@@ -22,6 +22,7 @@ import Swipeable from 'react-native-swipeable';
 import { StackNavigator } from 'react-navigation';
 import Swipeout from 'react-native-swipeout';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
+import { setFriends } from "./redux/action"
 const { fromJS } = require('immutable')
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -37,9 +38,13 @@ class FriendsListComp extends Component<Props> {
     headerTitle: 'friends',
     headerRight: (
         <Icon.Button name="search" backgroundColor="black" onPress={ () => { params.navigationToAddFriend() } }>
-            Search
+            SEARCH
         </Icon.Button>
-
+      ),
+    headerLeft: (
+        <Icon.Button name="cog" backgroundColor="black" onPress={ () => { params.navigationToUserProfile() } }>
+            SETTING
+        </Icon.Button>
       ),
     }
     }
@@ -48,10 +53,10 @@ class FriendsListComp extends Component<Props> {
   componentWillMount() {
     console.log("focus")
     this.props.navigation.setParams({ navigationToAddFriend: this._navigationToAddFriend });
-
+    this.props.navigation.setParams({ navigationToUserProfile: this._navigationToUserProfile });
 
     this.props.navigation.addListener('willFocus', (playload)=>{
-      console.log(playload);
+
 
       firebase.database()
           .ref(`user/${this.props.reduxState.dataReducer.id}/friends`)
@@ -62,9 +67,6 @@ class FriendsListComp extends Component<Props> {
             let childData = childSnapshot.val();
             friendIds.push(childData.id)
             })
-
-            console.log(friendIds)
-
             this.setState((prevState) => {
               let Mstate = fromJS(prevState)
               let Mstate1 = Mstate.setIn(["friends"], [])
@@ -81,39 +83,45 @@ class FriendsListComp extends Component<Props> {
                       let Mstate = fromJS(prevState)
                       let Mstate1 = Mstate.updateIn(["friends"], list => list.push(userVal))
                       return Mstate1.toJSON()
+                      })
                     })
-                    console.log(this.state)
-                  }
-            )
-
           })
     });
     })
   }
 
-
-  componentDidFocus(){
-    console.log("focus")
-
-  }
-
   _navigationToAddFriend =() => {
-    console.log("addfriend")
+
     this.props.navigation.navigate('AddFriend')
   }
 
-  searchFriends(){
-    console.log("search friends")
+  _navigationToUserProfile =() => {
+
+    this.props.navigation.navigate('UserProfile')
   }
 
   constructor(props){
     super(props);
-    console.log("constructor")
+
 
     this.state = {
                   friends: [],
                   imageUrl: {}
     };
+
+    firebase.database()
+        .ref(`user/${this.props.reduxState.dataReducer.id}/friends`)
+        .on('value', (snapshot) => {
+          let friendIds = []
+          snapshot.forEach(function(childSnapshot) {
+          let childKey = childSnapshot.key;
+          let childData = childSnapshot.val();
+          friendIds.push(childData.id)
+          })
+          this.props.setFriends(friendIds)
+        })
+
+
 
     // firebase.database()
     //     .ref(`user/${this.props.reduxState.dataReducer.id}/friends`)
@@ -207,7 +215,11 @@ const mapStateToProps = state => {
   return { reduxState : state };
 };
 
-const FriendsList = connect(mapStateToProps, null)(FriendsListComp);
+const mapDispatchToProps = (dispatch) => {
+    return { setFriends: friendList => dispatch(setFriends(friendList))};
+}
+
+const FriendsList = connect(mapStateToProps, mapDispatchToProps)(FriendsListComp);
 
 
 const styles = StyleSheet.create({
@@ -222,8 +234,6 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: '#d6d7da',
     padding: 10,
-
-
   },
   chatBoxStyle:{
     width: 1000,

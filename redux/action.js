@@ -1,4 +1,8 @@
 
 const setUserId = (id) => ({type: "SETID", id})
 
-export { setUserId }
+const setFriends = (friendList) => ({type: "SETFRIENDS", friendList})
+
+const addFriendAct = (friendId) => ({type: "ADDFRIEND", friendId})
+
+export { setUserId, setFriends, addFriendAct }

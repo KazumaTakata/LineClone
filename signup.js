@@ -23,7 +23,6 @@ import TextField from "./TextField"
 
 
 const { fromJS } = require('immutable')
-const Form = t.form.Form;
 
 
 const options = {
@@ -40,7 +39,20 @@ const options = {
   }
 }
 
-class LogInScreenComp extends React.Component {
+class SignupScreenComp extends React.Component {
+
+  static navigationOptions = ({ navigation }) => { {
+
+    let params = navigation.state.params
+    console.log(params)
+
+    return {
+    headerTitle: 'SIGNUP'
+    }
+    }
+  }
+
+
 
   constructor(props){
     super(props);
@@ -59,23 +71,10 @@ class LogInScreenComp extends React.Component {
                      borderBottomWidth: 0.5,
                      borderBottomColor: '#d6d7da',
                    },
-                 };
 
+                 };
     this.sendAuthenticationData = this.sendAuthenticationData.bind(this)
   }
-
-  static navigationOptions = ({ navigation }) => { {
-
-    let params = navigation.state.params
-    console.log(params)
-
-    return {
-    headerTitle: 'LOGIN'
-    }
-    }
-  }
-
-
   handleEmailInput(email){
     this.setState({email})
     console.log(this.state.email)
@@ -91,14 +90,17 @@ class LogInScreenComp extends React.Component {
       .then((user) => {
         let userId = user.user._user.uid
         this.props.setUserId(userId)
-        firebase.database()
-          .ref(`user/${userId}`)
-          .set({
-            friendsNum: 0,
-            profilePhoto: "none",
-            friends: "none",
-            userName: username
-          });
+        console.log(`user/${userId}/`)
+        firebase.storage().ref("linecloneImage/facebookProfile.jpg").getDownloadURL().then((url) => {
+          firebase.database()
+            .ref(`user/${userId}`)
+            .set({
+              friendsNum: 0,
+              profilePhoto: url,
+              friends: "none",
+              userName: username
+            });
+        })
       })
       .catch((error) => {
         const { code, message } = error;
@@ -144,54 +146,13 @@ class LogInScreenComp extends React.Component {
       });
     }
 
-  onLogin = (email, password) => {
-
+  onLogin = () => {
+  const { email, password } = this.state;
   firebase.auth().signInAndRetrieveDataWithEmailAndPassword(email, password)
-    .then((user) => {
-      console.log(user)
-      let userId = user.user._user.uid
-      this.props.setUserId(userId)
-
+    .then((user) => { console.log(user)
     })
     .catch((error) => {
       const { code, message } = error;
-      console.log(message)
-      if ( message == "The password is invalid or the user does not have a password."){
-        this.setState((prevState) => {
-          let Estate = fromJS(prevState)
-          let Estate1 = Estate.setIn(["passwordError"], "The password is invalid")
-          return Estate1.toJSON()
-        } )
-        this.setState((prevState) => {
-          let Estate = fromJS(prevState)
-          let Estate1 = Estate.setIn(["emailError"], null)
-          return Estate1.toJSON()
-        } )
-      }
-      if ( message == "The email address is badly formatted." ){
-        this.setState((prevState) => {
-          let Estate = fromJS(prevState)
-          let Estate1 = Estate.setIn(["emailError"], "The email address is badly formatted.")
-          return Estate1.toJSON()
-        } )
-        this.setState((prevState) => {
-          let Estate = fromJS(prevState)
-          let Estate1 = Estate.setIn(["passwordError"], null)
-          return Estate1.toJSON()
-        } )
-      }
-      if ( message == "There is no user record corresponding to this identifier. The user may have been deleted." ){
-        this.setState((prevState) => {
-          let Estate = fromJS(prevState)
-          let Estate1 = Estate.setIn(["emailError"], "There is no user record corresponding to this identifier. The user may have been deleted.")
-          return Estate1.toJSON()
-        } )
-        this.setState((prevState) => {
-          let Estate = fromJS(prevState)
-          let Estate1 = Estate.setIn(["passwordError"], null)
-          return Estate1.toJSON()
-        } )
-      }
       // console.log(message)
       // console.log(message.length)
     });
@@ -199,7 +160,8 @@ class LogInScreenComp extends React.Component {
 
   sendAuthenticationData(){
     console.log("button click")
-    this.onLogin(this.state.email, this.state.password)
+    // const value = this._form.getValue();
+    this.onRegister(this.state.email, this.state.password, this.state.username)
   }
 
   TextInputFocus(stylePath){
@@ -231,6 +193,13 @@ class LogInScreenComp extends React.Component {
           this.state.emailError ? <Text style={{color: "red"}}>{this.state.emailError}</Text> : null
         </View>
         <View>
+          <Text>Username</Text>
+        <View style={this.state.nameTextInputStyle}>
+            <TextInput onBlur={ () => { this.TextInputBlur("nameTextInputStyle") } } onFocus={() => {this.TextInputFocus("nameTextInputStyle") }} onChangeText={(username) => this.setState({username})} value={this.state.username} />
+          </View>
+          this.state.usernameError ? <Text style={{color: "red"}}>{this.state.usernameError}</Text> : null
+        </View>
+        <View>
           <Text>Password</Text>
         <View style={this.state.passwordTextInputStyle}>
           <TextInput onBlur={ () => { this.TextInputBlur("passwordTextInputStyle") } } onFocus={() => {this.TextInputFocus("passwordTextInputStyle") }} onChangeText={(password) => this.setState({password})} value={this.state.password} />
@@ -249,7 +218,7 @@ class LogInScreenComp extends React.Component {
 function mapDispatchToProps(dispatch) {
     return { setUserId: id => dispatch(setUserId(id))};
 }
-const LogInScreen = connect(null, mapDispatchToProps)(LogInScreenComp)
+const SignupScreen = connect(null, mapDispatchToProps)(SignupScreenComp)
 
 const styles = StyleSheet.create({
   buttonStyle:{
@@ -269,4 +238,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default LogInScreen;
+export default SignupScreen;

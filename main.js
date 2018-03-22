@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import firebase from 'react-native-firebase';
 import RootStack from "./App";
 import LogInScreen from './login';
-
+import SignUpLoginStack from "./SignUpLogin"
 
 class App extends React.Component {
 
@@ -36,7 +36,7 @@ class App extends React.Component {
 
   render() {
     if (!this.state.user) {
-      return <LogInScreen />;
+      return <SignUpLoginStack />;
     }
 
     return (

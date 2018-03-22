@@ -17,29 +17,29 @@ import Header from "./Header";
 import firebase from 'react-native-firebase';
 import DetailsScreen from "./login";
 import ChatRoom from "./chatRoom";
-import FriendsList from "./friends";
 
+import LogInScreen from "./login";
+import SignupScreen from "./signup"
+import SignupLoginHome from "./SignupLoginHome"
 import { StackNavigator } from 'react-navigation';
 import addFriend from "./addFriends";
-import UserProfile from "./userProfile";
 
-RootStack = StackNavigator({
-  Home: {
-      screen: FriendsList
+
+
+SignUpLoginStack = StackNavigator({
+  login: {
+      screen: LogInScreen
     },
-  Talk: {
-      screen: ChatRoom,
+  signup: {
+      screen: SignupScreen,
     },
-  AddFriend: {
-      screen : addFriend
-  },
-  UserProfile:{
-      screen: UserProfile
-  },
+  home: {
+      screen : SignupLoginHome
+  }
   },
   {
-      initialRouteName: "Home"
+      initialRouteName: "home"
   });
 
 
-export default RootStack
+export default SignUpLoginStack
