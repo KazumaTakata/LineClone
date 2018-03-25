@@ -14,15 +14,21 @@ import {
   FlatList,
   ListItem
 } from 'react-native';
-import Header from "./Header";
 import firebase from 'react-native-firebase';
-import DetailsScreen from "./login";
-
 import { StackNavigator } from 'react-navigation';
-
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 type Props = {};
 class ChatRoomComp extends Component<Props> {
+
+  static navigationOptions = ({ navigation, screenProps }) => ({
+    title:  'Chat Room',
+    headerLeft: <Icon.Button name="arrow-left" backgroundColor="transparent" color="black" onPress={ () => {navigation.goBack()} }>
+                    ChatList
+                </Icon.Button>
+  });
+
+
 
   constructor(props){
     super(props);
@@ -40,27 +46,83 @@ class ChatRoomComp extends Component<Props> {
           const value = snapshot.val();
 
         })
-
+    this.queryFriends = this.queryFriends.bind(this)
     this.buttonPressed = this.buttonPressed.bind(this)
+
+    this.queryFriends()
   }
 
 
   buttonPressed(){
     console.log("button pressed")
+    const { params } = this.props.navigation.state;
 
     firebase.database()
       .ref(this.MeToYou).push()
       .set({
         talk: this.state.text,
-        which: 0
+        which: 1
       });
     firebase.database()
       .ref(this.YouToMe).push()
       .set({
         talk: this.state.text,
-        which: 1
+        which: 0
       });
+
+    let meId = this.props.reduxState.dataReducer.id
+    let youId = params.id
+
+
+    const writeOrder = function(meId, youId){
+      let talkOrderList = `user/${meId}/talkOrder`
+      firebase.database()
+        .ref(talkOrderList).once("value", (snapshot)=>{
+          let order = snapshot.val()
+          if (order != null){
+            console.log(order)
+            let index = order.indexOf(youId)
+            if (index > -1) {
+              let orderRem = order.splice(index, 1)
+              let orderNew = orderRem.unshift(youId)
+            } else{
+              let orderNew = order.unshift(youId)
+            }
+            firebase.database()
+              .ref(talkOrderList).set({orderNew})
+          } else{
+            firebase.database()
+              .ref(talkOrderList).set([youId])
+          }
+          }
+        )
     }
+    writeOrder(meId, youId)
+    writeOrder(youId, meId)
+
+
+
+
+    }
+
+  queryFriends(){
+    firebase.database()
+        .ref(this.MeToYou)
+        .on('value', (snapshot) => {
+          let talkList = []
+
+          snapshot.forEach(function(childSnapshot) {
+            console.log(childSnapshot)
+            let childKey = childSnapshot.key;
+            let childData = childSnapshot.val();
+            talkList.push(childData)
+          })
+        this.setState((prevState) => {
+          return { chatData: talkList }
+        } )
+
+  });
+  }
 
   chatboxRender(data){
     let style = null
@@ -79,42 +141,32 @@ class ChatRoomComp extends Component<Props> {
   componentWillMount() {
     this.props.navigation.addListener('willFocus', (playload)=>{
 
-      firebase.database()
-          .ref(this.MeToYou)
-          .on('value', (snapshot) => {
-            let talkList = []
+      this.queryFriends()
 
-            snapshot.forEach(function(childSnapshot) {
-              console.log(childSnapshot)
-              let childKey = childSnapshot.key;
-              let childData = childSnapshot.val();
-              talkList.push(childData)
-            })
-          this.setState((prevState) => {
-            return { chatData: talkList }
-          } )
-
-    });
     })
   }
 
   render() {
     return (
       <View style={{flex: 1, alignItems: "center"}}>
-      <Header headerTitle="ChatRoom"></Header>
-        <ScrollView>
+        <View style={{flex: 6, alignItems: "center"}}>
+        <ScrollView ref={ref => this.scrollView = ref} onContentSizeChange={(contentWidth, contentHeight)=>{
+        this.scrollView.scrollToEnd({animated: true});
+            }} >
             <FlatList style={{width: 350}}
                 data={this.state.chatData}
                 renderItem={({item}) => this.chatboxRender(item)
             }/>
         </ScrollView>
-
-    <View style={{flexDirection: "row" ,position: "absolute", bottom: 2}}>
-      <TextInput onChangeText={(text) => this.setState({text})} style={styles.TextBoxStyle} value={this.state.text}></TextInput>
-      <TouchableOpacity style={styles.buttonStyle} onPress={this.buttonPressed}>
-          <Text style={{textAlign: "center", color: "white"}}>Send</Text>
-      </TouchableOpacity>
-    </View>
+        </View>
+        <View style={{flex: 1, alignItems: "center"}}>
+          <View style={{alignItems: "center" ,flexDirection: "row" ,position: "absolute", bottom: 2}}>
+            <TextInput onChangeText={(text) => this.setState({text})} style={styles.TextBoxStyle} value={this.state.text}></TextInput>
+            <TouchableOpacity style={styles.buttonStyle} onPress={this.buttonPressed}>
+                <Text style={{justifyContent: 'center', color: "white"}}>Send</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
     </View>
   );
   }
@@ -149,8 +201,11 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 1.5,
     borderColor: "black",
-    backgroundColor: "green",
+    backgroundColor: "black",
+    height: 40,
     width: 50,
+    justifyContent: 'center',
+    alignItems: "center"
   },
   chatBoxStyleRight: {
     borderRadius: 10,
@@ -172,6 +227,11 @@ const styles = StyleSheet.create({
 const mapStateToProps = state => {
   return { reduxState : state };
 };
+
+const mapDispatchToProps = (dispatch) => {
+    return { setFriends: friendList => dispatch(setFriends(friendList))};
+}
+
 
 const ChatRoom = connect(mapStateToProps, null)(ChatRoomComp);
 

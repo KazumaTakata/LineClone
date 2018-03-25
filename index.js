@@ -1,6 +1,5 @@
 import { AppRegistry } from 'react-native';
 import React, { Component } from "react";
-import RootStack from './App';
 import App from "./main"
 import { Provider } from 'react-redux';
 import store from "./redux/index"

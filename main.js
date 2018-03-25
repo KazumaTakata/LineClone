@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import firebase from 'react-native-firebase';
-import RootStack from "./App";
-import LogInScreen from './login';
-import SignUpLoginStack from "./SignUpLogin"
+import RootTab from "./src/App";
+import SignUpLoginStack from "./SignUpLogIn/SignUpLogin"
+import { connect } from "react-redux";
 
-class App extends React.Component {
+class AppComp extends React.Component {
 
   constructor() {
     super();
@@ -20,7 +20,6 @@ class App extends React.Component {
     this.unsubscriber = firebase.auth().onAuthStateChanged((user) => {
       this.setState({ user: user });
     });
-    // this.unsubscriber()
     firebase.auth().signOut()
   }
 
@@ -35,15 +34,22 @@ class App extends React.Component {
   }
 
   render() {
-    if (!this.state.user) {
+    console.log(this.props.reduxState.dataReducer.id)
+    if (!this.state.user || this.props.reduxState.dataReducer.id == null){
       return <SignUpLoginStack />;
     }
 
     return (
-        <RootStack />
+        <RootTab />
     );
   }
 
 }
+
+const mapStateToProps = state => {
+  return { reduxState : state };
+};
+
+const App = connect(mapStateToProps, null)(AppComp);
 
 export default App;

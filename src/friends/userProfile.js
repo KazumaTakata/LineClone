@@ -15,18 +15,16 @@ import {
   ListItem,
   TouchableHighlight
 } from 'react-native';
-import Header from "./Header";
 import firebase from 'react-native-firebase';
-import DetailsScreen from "./login";
 import Swipeable from 'react-native-swipeable';
 import { StackNavigator } from 'react-navigation';
 import Swipeout from 'react-native-swipeout';
 import FontAwesome, { Icons } from 'react-native-fontawesome';
 const { fromJS } = require('immutable')
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { addFriendAct } from "./redux/action";
+import { addFriendAct } from "../../redux/action";
 import RNFetchBlob from 'react-native-fetch-blob'
-import FirebaseClient from './firebaseClient'
+import FirebaseClient from '../utils/firebaseClient'
 
 let ImagePicker = require('react-native-image-picker');
 
@@ -95,10 +93,24 @@ class UserProfileComp extends Component<Props> {
 
 
     this.state = {
-      id: ""
+      id: "",
+      avatarSource: ""
     }
 
     this.ImagePicker = require('react-native-image-picker');
+
+  }
+
+  componentDidMount(){
+    firebase.database()
+      .ref(`user/${this.props.reduxState.dataReducer.id}/profilePhoto`)
+      .once('value', (snapshot) => {
+        let profilePhotoUrl = snapshot.val()
+        console.log(profilePhotoUrl)
+        console.log(this.state)
+        this.setState({avatarSource: profilePhotoUrl})
+      })
+
   }
 
   openImage(ImagePicker){
@@ -121,7 +133,7 @@ class UserProfileComp extends Component<Props> {
             this.setState({avatarSource: url})
 
             let updates = {}
-            updates[`user/${this.props.reduxState.dataReducer.id}/profilePhoto`] = this.state.avatarSource
+            updates[`user/${this.props.reduxState.dataReducer.id}/profilePhoto`] = url
             firebase.database()
               .ref()
               .update(updates);
@@ -134,12 +146,15 @@ class UserProfileComp extends Component<Props> {
   render() {
     return (
       <View style={{flex: 1}}>
-        <View>
-        <Image style={styles.image} source={{uri: this.state.avatarSource}}></Image>
+        <View style={{flex: 1, alignItems:"center", justifyContent: "center"}}>
+          <Text style={{padding: 20, fontSize: 20}}>Profile Photo</Text>
+          <Image style={styles.image} source={{uri: this.state.avatarSource}}></Image>
         </View>
-      <TouchableHighlight style={styles.buttonStyle} underlayColor='#fff' onPress={() => { this.openImage(this.ImagePicker) }} >
-          <Text style={styles.submitText}>LogIn</Text>
-        </TouchableHighlight>
+        <View style={{flex: 1, alignItems:"center"}}>
+            <TouchableHighlight style={styles.buttonStyle} underlayColor='#fff' onPress={() => { this.openImage(this.ImagePicker) }} >
+              <Text style={styles.submitText}>Choose Profile Photo</Text>
+            </TouchableHighlight>
+        </View>
       </View>
   );
   }
@@ -158,9 +173,9 @@ const UserProfile = connect(mapStateToProps, mapDispatchToProps)(UserProfileComp
 
 const styles = StyleSheet.create({
   image: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
   },
   buttonStyle:{
     marginRight:40,
@@ -168,6 +183,7 @@ const styles = StyleSheet.create({
     marginTop:60,
     paddingTop:20,
     paddingBottom:20,
+    padding: 20,
     backgroundColor:'#68a0cf',
     borderRadius:10,
     borderWidth: 1,
