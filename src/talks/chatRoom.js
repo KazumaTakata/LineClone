@@ -12,11 +12,13 @@ import {
   TouchableOpacity,
   ScrollView,
   FlatList,
-  ListItem
+  ListItem,
+  KeyboardAvoidingView
 } from 'react-native';
 import firebase from 'react-native-firebase';
 import { StackNavigator } from 'react-navigation';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { KeyboardAwareScrollView  } from 'react-native-keyboard-aware-scroll-view'
 
 type Props = {};
 class ChatRoomComp extends Component<Props> {
@@ -54,6 +56,7 @@ class ChatRoomComp extends Component<Props> {
 
 
   buttonPressed(){
+    if (this.state.text != ""){
     console.log("button pressed")
     const { params } = this.props.navigation.state;
 
@@ -74,34 +77,66 @@ class ChatRoomComp extends Component<Props> {
     let youId = params.id
 
 
-    const writeOrder = function(meId, youId){
+    // const writeOrder = function(meId, youId){
+    //   let talkOrderList = `user/${meId}/talkOrder`
+    //   firebase.database()
+    //     .ref(talkOrderList).once("value", (snapshot)=>{
+    //       let order = snapshot.val()
+    //       if (order != null){
+    //         console.log(order)
+    //         let index = order.indexOf(youId)
+    //
+    //         if (index > -1) {
+    //           order.splice(index, 1)
+    //           order.unshift(youId)
+    //         } else{
+    //           order.unshift(youId)
+    //         }
+    //         let updates = {}
+    //         updates[talkOrderList] = order
+    //         firebase.database()
+    //           .ref().update(updates)
+    //       } else{
+    //         firebase.database()
+    //           .ref(talkOrderList).set([youId])
+    //       }
+    //       }
+    //     )
+    // }
+    let CurrentText = this.state.text
+
+    const writeOrder = (meId, youId) => {
       let talkOrderList = `user/${meId}/talkOrder`
       firebase.database()
         .ref(talkOrderList).once("value", (snapshot)=>{
           let order = snapshot.val()
           if (order != null){
             console.log(order)
-            let index = order.indexOf(youId)
+            let index = order.findIndex(x => x.id == youId)
+
             if (index > -1) {
-              let orderRem = order.splice(index, 1)
-              let orderNew = orderRem.unshift(youId)
+              order.splice(index, 1)
+              order.unshift({id: youId, talk: CurrentText})
             } else{
-              let orderNew = order.unshift(youId)
+              order.unshift({id: youId, talk: CurrentText})
             }
+            let updates = {}
+            updates[talkOrderList] = order
             firebase.database()
-              .ref(talkOrderList).set({orderNew})
+              .ref().update(updates)
           } else{
             firebase.database()
-              .ref(talkOrderList).set([youId])
+              .ref(talkOrderList).set([{id: youId, talk: CurrentText}])
           }
           }
         )
     }
+
     writeOrder(meId, youId)
     writeOrder(youId, meId)
 
-
-
+    this.setState({text: ""})
+    }
 
     }
 
@@ -149,6 +184,8 @@ class ChatRoomComp extends Component<Props> {
   render() {
     return (
       <View style={{flex: 1, alignItems: "center"}}>
+        <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={64}>
+        <View style={{flex: 1, alignItems: "center"}}>
         <View style={{flex: 6, alignItems: "center"}}>
         <ScrollView ref={ref => this.scrollView = ref} onContentSizeChange={(contentWidth, contentHeight)=>{
         this.scrollView.scrollToEnd({animated: true});
@@ -167,6 +204,8 @@ class ChatRoomComp extends Component<Props> {
             </TouchableOpacity>
           </View>
         </View>
+        </View>
+        </KeyboardAvoidingView>
     </View>
   );
   }

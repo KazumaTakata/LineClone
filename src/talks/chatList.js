@@ -66,12 +66,13 @@ class FriendsListComp extends Component<Props> {
             return Mstate1.toJSON()
           })
 
-          friendIds.forEach((id) => {
+          friendIds.forEach((obj) => {
           firebase.database()
-                .ref(`user/${id}`)
+                .ref(`user/${obj.id}`)
                 .on('value', (snapshot) => {
                   let userVal = snapshot.val()
-                  userVal["id"] = id
+                  userVal["id"] = obj.id
+                  userVal["talk"] = obj.talk
                   console.log(userVal)
                   this.setState((prevState) => {
                     let Mstate = fromJS(prevState)
@@ -112,7 +113,7 @@ class FriendsListComp extends Component<Props> {
         }
       }
     ]
-    
+
     this.friendQueryOrder = this.friendQueryOrder.bind(this)
     storage = firebase.storage();
   }
@@ -141,8 +142,12 @@ class FriendsListComp extends Component<Props> {
         <ScrollView>
             <FlatList
                 data={this.state.friends}
-                renderItem={({item}) => <Swipeout right={swipeoutBtns}><View style={styles.viewContainer}><Image  style={styles.image} source={{uri: item.profilePhoto}}/><Text id={item.id} onPress={ () => this.FriendItemTouch(item.userName, item.id)} style={styles.chatBoxStyle}>{item.userName}</Text>
+                renderItem={({item}) => <Swipeout right={swipeoutBtns}><View style={styles.viewContainer}><Image  style={styles.image} source={{uri: item.profilePhoto}}/>
+              <View>
+                <Text id={item.id} onPress={ () => this.FriendItemTouch(item.userName, item.id)} style={styles.chatBoxStyle}>{item.userName}</Text>
+              <Text style={styles.chatBoxStyleText} >{item.talk}</Text>
               </View>
+          </View>
             </Swipeout>
             }/>
         </ScrollView>
@@ -177,9 +182,16 @@ const styles = StyleSheet.create({
   },
   chatBoxStyle:{
     width: 1000,
-    padding: 20,
+    padding: 10,
     backgroundColor: "rgb(162, 199, 90)",
     fontSize: 20,
+    color: "white"
+  },
+  chatBoxStyleText:{
+    width: 1000,
+    padding: 10,
+    backgroundColor: "rgb(162, 199, 90)",
+    fontSize: 10,
     color: "white"
   }
 

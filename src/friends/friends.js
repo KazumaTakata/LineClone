@@ -24,6 +24,17 @@ import FontAwesome, { Icons } from 'react-native-fontawesome';
 import { setFriends } from "../../redux/action"
 const { fromJS } = require('immutable')
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { Query, graphql } from "react-apollo";
+import {gql} from "apollo-boost";
+
+
+const TrainerQuery = gql`
+  query Query {
+    user(id: "4ij7rdxxJLVtY3cvAogZB5wiy692") {
+      id
+    }
+  }
+`
 
 type Props = {};
 class FriendsListComp extends Component<Props> {
@@ -193,6 +204,30 @@ class FriendsListComp extends Component<Props> {
                                 })
   }
 
+  // friendsListRender(){
+  //   return( <Query query={TrainerQuery}>
+  //     {({ loading, error, data }) => {
+  //       if (loading) return <Text>Loading...</Text>;
+  //       if (error){
+  //         console.log(error.message)
+  //         console.log(data)
+  //         return <Text>Error :</Text>};
+  //       console.log(data)
+  //       return (<FlatList
+  //                     data={data}
+  //                     renderItem={({item}) =>
+  //                     <Swipeout right={swipeoutBtns}>
+  //                       <View style={styles.viewContainer}>
+  //                               <Image  style={styles.image} source={{uri: item.profilePhoto}}/>
+  //                               <Text id={item.id} onPress={ () => this.FriendItemTouch(item.userName, item.id, item.profilePhoto)} style={styles.chatBoxStyle}>{item.userName}</Text>
+  //                       </View>
+  //                     </Swipeout>
+  //                  } />)
+  //               }}
+  //       </Query>)
+  // }
+
+
 
 
   render() {
@@ -205,7 +240,13 @@ class FriendsListComp extends Component<Props> {
          onRequestClose={() => {
            alert('Modal has been closed.');
          }}>
-         <View style={{flex: 1, alignItems: "center", justifyContent: "center"}}>
+         <View style={{flex: 1, alignItems: "center", justifyContent: "center", shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 3
+    },
+    shadowRadius: 5,
+    shadowOpacity: 1.0}}>
            <View style={{alignItems: "center", justifyContent: "center", width: 250, height: 250, backgroundColor: "rgb(162, 199, 90)", borderRadius: 20}}>
 
              <Text style={{color: "white", fontSize: 20, margin: 10}}>{this.state.activeModalName}</Text>
@@ -227,7 +268,8 @@ class FriendsListComp extends Component<Props> {
            </View>
           </View>
         </Modal>
-
+        <View>
+        </View>
         <ScrollView>
             <FlatList
                 data={this.state.friends}
@@ -240,6 +282,40 @@ class FriendsListComp extends Component<Props> {
   );
   }
 }
+//
+// class Pokedex extends React.Component {
+//
+//   render () {
+//     if (this.props.data.loading) {
+//       return (<Text>Loading</Text>)
+//     }
+//
+//     if (this.props.data.error) {
+//       console.log(this.props.data.error)
+//       return (<Text>An unexpected error occurred</Text>)
+//     }
+//
+//     console.log(this.props.data.user.id)
+//     return (
+//       <View>
+//         <Text>
+//           {this.props.data.user.id}
+//         </Text>
+//       </View>
+//     )
+//   }
+// }
+//
+// const TrainerQuery = gql`
+//   query Query {
+//     user(id: "4ij7rdxxJLVtY3cvAogZB5wiy692") {
+//       id
+//     }
+//   }
+// `
+
+// const PokedexWithData = graphql(TrainerQuery)(Pokedex)
+
 
 const mapStateToProps = state => {
   return { reduxState : state };
