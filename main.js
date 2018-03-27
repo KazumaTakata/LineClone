@@ -35,9 +35,9 @@ class AppComp extends React.Component {
 
   render() {
     console.log(this.props.reduxState.dataReducer.id)
-    if (!this.state.user || this.props.reduxState.dataReducer.id == null){
-      return <SignUpLoginStack />;
-    }
+    // if (!this.state.user || this.props.reduxState.dataReducer.id == null){
+    //   return <SignUpLoginStack />;
+    // }
 
     return (
         <RootTab />

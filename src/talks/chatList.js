@@ -65,7 +65,7 @@ class FriendsListComp extends Component<Props> {
             let Mstate1 = Mstate.setIn(["friends"], [])
             return Mstate1.toJSON()
           })
-
+          if (friendIds != null){
           friendIds.forEach((obj) => {
           firebase.database()
                 .ref(`user/${obj.id}`)
@@ -81,6 +81,7 @@ class FriendsListComp extends Component<Props> {
                     })
                   })
         })
+      }
   });
   }
 

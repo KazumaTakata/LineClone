@@ -18,11 +18,14 @@ import firebase from 'react-native-firebase';
 import ChatRoom from "./talks/chatRoom";
 import FriendsList from "./friends/friends";
 import ChatList from "./talks/chatList";
+import NewsMain from "./news/index"
+import NewsDetail from "./news/newsDetail"
 
 import { StackNavigator, TabNavigator } from 'react-navigation';
 import addFriend from "./friends/addFriends";
 import UserProfile from "./friends/userProfile";
 import Icon from 'react-native-vector-icons/FontAwesome';
+
 
 RootStack = StackNavigator({
   Friends: {
@@ -54,9 +57,23 @@ RootStack2 = StackNavigator({
         initialRouteName: "Chat"
     });
 
+
+RootStack3 = StackNavigator({
+        NewsMain: {
+            screen: NewsMain
+          },
+        NewsDetail: {
+            screen: NewsDetail,
+          }
+        },
+        {
+            initialRouteName: "NewsMain"
+        });
+
 RootTab = TabNavigator({
   tabUsers: { screen: RootStack },
-  tabChats: { screen: RootStack2}
+  tabChats: { screen: RootStack2},
+  tabNews: { screen:  RootStack3}
   },
   {
   navigationOptions: ({ navigation }) => ({
@@ -72,6 +89,11 @@ RootTab = TabNavigator({
              "Chat"
            )
          }
+         if (routeName === "tabNews"){
+           return (
+             "News"
+           )
+         }
        },
        tabBarIcon:({ focused, tintColor }) => {
         const { routeName } = navigation.state;
@@ -81,6 +103,11 @@ RootTab = TabNavigator({
            )
          }
         if (routeName === "tabChats"){
+          return (
+            <Icon.Button name="comment" backgroundColor="transparent"></Icon.Button>
+          )
+        }
+        if (routeName === "tabNews"){
           return (
             <Icon.Button name="comment" backgroundColor="transparent"></Icon.Button>
           )
