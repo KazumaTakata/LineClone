@@ -109,7 +109,7 @@ RootTab = TabNavigator({
         }
         if (routeName === "tabNews"){
           return (
-            <Icon.Button name="comment" backgroundColor="transparent"></Icon.Button>
+            <Icon.Button name="newspaper-o" backgroundColor="transparent"></Icon.Button>
           )
         }
      }

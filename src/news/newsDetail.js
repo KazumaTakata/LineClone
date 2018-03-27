@@ -56,10 +56,13 @@ class NewsDetailComp extends Component<Props> {
   render() {
     const { params } = this.props.navigation.state;
     return (
+      <ScrollView>
       <View style={{flex: 1, justifyContent:"center" ,alignItems: "center"}}>
+        <Text style={{margin: 20, fontSize: 25}}>{JSON.stringify(params.news.title)}</Text>
         <Image style={{width: 300, height: 300}} source={{uri: params.news.urlToImage}}></Image>
-        <Text>{JSON.stringify(params.news.description)}</Text>
+        <Text style={{margin: 20, }}>{JSON.stringify(params.news.description)}</Text>
       </View>
+      </ScrollView>
   );
   }
 }
